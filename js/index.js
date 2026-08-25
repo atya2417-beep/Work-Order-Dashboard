@@ -20,6 +20,34 @@ const SHEETS = {
     sheetName: "REWIND REPORT",
     workOrderColumn: "E",
   },
+
+  // =================================================
+  // IN PROCESS DRUMS
+  // =================================================
+
+  ARMOURING: {
+    spreadsheetId: "1DiwDhMt5kTQsMUkruE2ibPtBqSIyQI4XgCaOnsqTd-8",
+    sheetName: "Armouring",
+    workOrderColumn: "C",
+  },
+
+  SCREENING: {
+    spreadsheetId: "1u8NIxUPoG0OpPglXyiMoTILNfXLkjwXtEbkZpZG30Bk",
+    sheetName: "Screening",
+    workOrderColumn: "C",
+  },
+
+  TAPPING: {
+    spreadsheetId: "1O99ubLJd5Msj6MsH6FiQWtbjcebbccNicWyVi7bkq0M",
+    sheetName: "Tapping",
+    workOrderColumn: "C",
+  },
+
+  ASSEMBLY: {
+    spreadsheetId: "10LTgnqt7LPiN-4piO8iNB5giwI2pdcTxWTmjhbsyWOw",
+    sheetName: "Assembly",
+    workOrderColumn: "C",
+  },
 };
 
 // =====================================================
@@ -28,32 +56,77 @@ const SHEETS = {
 
 const workOrderInput = document.getElementById("workOrder");
 
+const showInProcessDrums = document.getElementById("showInProcessDrums");
+
 const searchBtn = document.getElementById("searchBtn");
+
 const exportBtn = document.getElementById("exportBtn");
 
 const errorBox = document.getElementById("errorBox");
+
 const loading = document.getElementById("loading");
+
 const resultInfo = document.getElementById("resultInfo");
 
 const summary = document.getElementById("summary");
 
 const finishCount = document.getElementById("finishCount");
+
 const holdCount = document.getElementById("holdCount");
+
 const rewindCount = document.getElementById("rewindCount");
+
+const armouringSummaryCard = document.getElementById("armouringSummaryCard");
+
+const screeningSummaryCard = document.getElementById("screeningSummaryCard");
+
+const tappingSummaryCard = document.getElementById("tappingSummaryCard");
+
+const assemblySummaryCard = document.getElementById("assemblySummaryCard");
+
+const armouringCount = document.getElementById("armouringCount");
+
+const screeningCount = document.getElementById("screeningCount");
+
+const tappingCount = document.getElementById("tappingCount");
+
+const assemblyCount = document.getElementById("assemblyCount");
+
 const totalCount = document.getElementById("totalCount");
 
 const finishTable = document.getElementById("finishTable");
+
 const holdTable = document.getElementById("holdTable");
+
 const rewindTable = document.getElementById("rewindTable");
 
 // =====================================================
-// Store last search result
+// In Process Elements
+// =====================================================
+
+const inProcessSections = document.getElementById("inProcessSections");
+
+const armouringTable = document.getElementById("armouringTable");
+
+const screeningTable = document.getElementById("screeningTable");
+
+const tappingTable = document.getElementById("tappingTable");
+
+const assemblyTable = document.getElementById("assemblyTable");
+
+// =====================================================
+// Search Results
 // =====================================================
 
 let searchResults = {
   FINISH: [],
   HOLD: [],
   REWIND: [],
+
+  ARMOURING: [],
+  SCREENING: [],
+  TAPPING: [],
+  ASSEMBLY: [],
 };
 
 // =====================================================
@@ -65,9 +138,9 @@ async function searchWO() {
 
   clearMessages();
 
-  // -----------------------------------------------
-  // Validate
-  // -----------------------------------------------
+  // =================================================
+  // Validation
+  // =================================================
 
   if (!workOrder) {
     showError("Please enter a Work Order.");
@@ -75,15 +148,11 @@ async function searchWO() {
     return;
   }
 
-  // -----------------------------------------------
+  // =================================================
   // Loading
-  // -----------------------------------------------
+  // =================================================
 
   setLoading(true);
-
-  // -----------------------------------------------
-  // Disable buttons
-  // -----------------------------------------------
 
   searchBtn.disabled = true;
 
@@ -91,55 +160,136 @@ async function searchWO() {
 
   try {
     // =================================================
-    // Search in the 3 Sheets simultaneously
+    // Always search these 3
     // =================================================
 
-    const [finishRows, holdRows, rewindRows] = await Promise.all([
+    const requests = [
       searchSheet(SHEETS.FINISH, workOrder),
+
       searchSheet(SHEETS.HOLD, workOrder),
+
       searchSheet(SHEETS.REWIND, workOrder),
-    ]);
+    ];
 
     // =================================================
-    // Save results
+    // Search In Process only when checked
     // =================================================
 
-    searchResults = {
-      FINISH: finishRows,
-      HOLD: holdRows,
-      REWIND: rewindRows,
-    };
+    if (showInProcessDrums.checked) {
+      requests.push(searchSheet(SHEETS.ARMOURING, workOrder));
+
+      requests.push(searchSheet(SHEETS.SCREENING, workOrder));
+
+      requests.push(searchSheet(SHEETS.TAPPING, workOrder));
+
+      requests.push(searchSheet(SHEETS.ASSEMBLY, workOrder));
+    }
 
     // =================================================
-    // Render tables
+    // Execute Requests
     // =================================================
 
-    renderTable(finishRows, finishTable, "FINISH");
-
-    renderTable(holdRows, holdTable, "HOLD");
-
-    renderTable(rewindRows, rewindTable, "REWIND");
+    const results = await Promise.all(requests);
 
     // =================================================
-    // Update summary
+    // Save Main Results
+    // =================================================
+
+    searchResults.FINISH = results[0];
+
+    searchResults.HOLD = results[1];
+
+    searchResults.REWIND = results[2];
+
+    // =================================================
+    // Save In Process Results
+    // =================================================
+
+    if (showInProcessDrums.checked) {
+      searchResults.ARMOURING = results[3];
+
+      searchResults.SCREENING = results[4];
+
+      searchResults.TAPPING = results[5];
+
+      searchResults.ASSEMBLY = results[6];
+    } else {
+      searchResults.ARMOURING = [];
+      searchResults.SCREENING = [];
+      searchResults.TAPPING = [];
+      searchResults.ASSEMBLY = [];
+    }
+
+    // =================================================
+    // Render Main Tables
+    // =================================================
+
+    renderTable(searchResults.FINISH, finishTable, "FINISH");
+
+    renderTable(searchResults.HOLD, holdTable, "HOLD");
+
+    renderTable(searchResults.REWIND, rewindTable, "REWIND");
+
+    // =================================================
+    // Render In Process Tables
+    // =================================================
+
+    if (showInProcessDrums.checked) {
+      inProcessSections.style.display = "block";
+
+      renderTable(searchResults.ARMOURING, armouringTable, "ARMOURING");
+
+      renderTable(searchResults.SCREENING, screeningTable, "SCREENING");
+
+      renderTable(searchResults.TAPPING, tappingTable, "TAPPING");
+
+      renderTable(searchResults.ASSEMBLY, assemblyTable, "ASSEMBLY");
+    } else {
+      inProcessSections.style.display = "none";
+    }
+
+    // =================================================
+    // Update Summary
     // =================================================
 
     updateSummary();
 
     // =================================================
-    // Result info
+    // Result Info
     // =================================================
 
-    const totalRows = finishRows.length + holdRows.length + rewindRows.length;
+    const mainTotal =
+      searchResults.FINISH.length +
+      searchResults.HOLD.length +
+      searchResults.REWIND.length;
+
+    let inProcessTotal = 0;
+
+    if (showInProcessDrums.checked) {
+      inProcessTotal =
+        searchResults.ARMOURING.length +
+        searchResults.SCREENING.length +
+        searchResults.TAPPING.length +
+        searchResults.ASSEMBLY.length;
+    }
+
+    const totalRows = mainTotal + inProcessTotal;
 
     resultInfo.innerHTML = `
-      Work Order:
-      <strong>${escapeHtml(workOrderInput.value.trim())}</strong>
-      |
-      Found:
-      <strong>${totalRows}</strong>
-      row(s)
-    `;
+            Work Order:
+            <strong>
+                ${escapeHtml(workOrderInput.value.trim())}
+            </strong>
+
+            |
+
+            Found:
+            <strong>
+                ${totalRows}
+            </strong>
+
+            row(s)
+        `;
 
     // =================================================
     // Export
@@ -175,20 +325,7 @@ async function searchSheet(config, workOrder) {
 
   const data = await response.json();
 
-  // -----------------------------------------------
-  // Convert Excel column letter to index
-  //
-  // A = 0
-  // B = 1
-  // C = 2
-  // ...
-  // -----------------------------------------------
-
   const columnIndex = columnLetterToIndex(config.workOrderColumn);
-
-  // -----------------------------------------------
-  // Filter rows
-  // -----------------------------------------------
 
   return data.filter((row) => {
     const values = Object.values(row);
@@ -222,56 +359,56 @@ function columnLetterToIndex(column) {
 // =====================================================
 
 function renderTable(rows, container, type) {
-  // -----------------------------------------------
-  // No results
-  // -----------------------------------------------
+  // =================================================
+  // No Results
+  // =================================================
 
   if (rows.length === 0) {
     container.innerHTML = `
-      <div class="empty">
-        No ${type} records found
-      </div>
-    `;
+            <div class="empty">
+                No ${type} records found
+            </div>
+        `;
 
     return;
   }
 
-  // -----------------------------------------------
+  // =================================================
   // Headers
-  // -----------------------------------------------
+  // =================================================
 
   const headers = Object.keys(rows[0]);
 
   let html = `
 
-    <div class="tableWrapper">
+        <div class="tableWrapper">
 
-      <table>
+            <table>
 
-        <thead>
+                <thead>
 
-          <tr>
-  `;
+                    <tr>
+    `;
 
   headers.forEach((header) => {
     html += `
-      <th>
-        ${escapeHtml(header)}
-      </th>
-    `;
+            <th>
+                ${escapeHtml(header)}
+            </th>
+        `;
   });
 
   html += `
-          </tr>
+                    </tr>
 
-        </thead>
+                </thead>
 
-        <tbody>
-  `;
+                <tbody>
+    `;
 
-  // -----------------------------------------------
+  // =================================================
   // Rows
-  // -----------------------------------------------
+  // =================================================
 
   rows.forEach((row) => {
     html += `<tr>`;
@@ -280,10 +417,10 @@ function renderTable(rows, container, type) {
       const value = row[header] ?? "";
 
       html += `
-        <td>
-          ${escapeHtml(value)}
-        </td>
-      `;
+                <td>
+                    ${escapeHtml(value)}
+                </td>
+            `;
     });
 
     html += `</tr>`;
@@ -291,13 +428,13 @@ function renderTable(rows, container, type) {
 
   html += `
 
-        </tbody>
+                </tbody>
 
-      </table>
+            </table>
 
-    </div>
+        </div>
 
-  `;
+    `;
 
   container.innerHTML = html;
 }
@@ -307,13 +444,19 @@ function renderTable(rows, container, type) {
 // =====================================================
 
 function updateSummary() {
+  // =================================================
+  // Main
+  // =================================================
+
   const finishTotal = searchResults.FINISH.length;
 
   const holdTotal = searchResults.HOLD.length;
 
   const rewindTotal = searchResults.REWIND.length;
 
-  const total = finishTotal + holdTotal + rewindTotal;
+  // =================================================
+  // Update Main Cards
+  // =================================================
 
   finishCount.textContent = finishTotal;
 
@@ -321,7 +464,77 @@ function updateSummary() {
 
   rewindCount.textContent = rewindTotal;
 
+  // =================================================
+  // Default: Hide In Process Cards
+  // =================================================
+
+  armouringSummaryCard.style.display = "none";
+
+  screeningSummaryCard.style.display = "none";
+
+  tappingSummaryCard.style.display = "none";
+
+  assemblySummaryCard.style.display = "none";
+
+  // =================================================
+  // Total
+  // =================================================
+
+  let total = finishTotal + holdTotal + rewindTotal;
+
+  // =================================================
+  // Show In Process
+  // =================================================
+
+  if (showInProcessDrums.checked) {
+    const armouringTotal = searchResults.ARMOURING.length;
+
+    const screeningTotal = searchResults.SCREENING.length;
+
+    const tappingTotal = searchResults.TAPPING.length;
+
+    const assemblyTotal = searchResults.ASSEMBLY.length;
+
+    // ---------------------------------------------
+    // Update Counts
+    // ---------------------------------------------
+
+    armouringCount.textContent = armouringTotal;
+
+    screeningCount.textContent = screeningTotal;
+
+    tappingCount.textContent = tappingTotal;
+
+    assemblyCount.textContent = assemblyTotal;
+
+    // ---------------------------------------------
+    // Show Cards
+    // ---------------------------------------------
+
+    armouringSummaryCard.style.display = "block";
+
+    screeningSummaryCard.style.display = "block";
+
+    tappingSummaryCard.style.display = "block";
+
+    assemblySummaryCard.style.display = "block";
+
+    // ---------------------------------------------
+    // Add To Total
+    // ---------------------------------------------
+
+    total += armouringTotal + screeningTotal + tappingTotal + assemblyTotal;
+  }
+
+  // =================================================
+  // Update Total
+  // =================================================
+
   totalCount.textContent = total;
+
+  // =================================================
+  // Show Summary
+  // =================================================
 
   summary.style.display = "grid";
 }
@@ -333,26 +546,68 @@ function updateSummary() {
 function exportExcel() {
   const workbook = XLSX.utils.book_new();
 
+  // =================================================
+  // Always Export Main 3
+  // =================================================
+
   const sheets = [
     {
       name: "FINISH",
       data: searchResults.FINISH,
     },
+
     {
       name: "HOLD",
       data: searchResults.HOLD,
     },
+
     {
       name: "REWIND",
       data: searchResults.REWIND,
     },
   ];
 
+  // =================================================
+  // Export In Process when checked
+  // =================================================
+
+  if (showInProcessDrums.checked) {
+    sheets.push(
+      {
+        name: "ARMOURING",
+        data: searchResults.ARMOURING,
+      },
+
+      {
+        name: "SCREENING",
+        data: searchResults.SCREENING,
+      },
+
+      {
+        name: "TAPPING",
+        data: searchResults.TAPPING,
+      },
+
+      {
+        name: "ASSEMBLY",
+        data: searchResults.ASSEMBLY,
+      },
+    );
+  }
+
+  // =================================================
+  // Create Sheets
+  // =================================================
+
   sheets.forEach((sheet) => {
     const worksheet = XLSX.utils.json_to_sheet(sheet.data);
 
     XLSX.utils.book_append_sheet(workbook, worksheet, sheet.name);
   });
+
+  // =================================================
+  // File Name
+  // =================================================
 
   const workOrder = workOrderInput.value.trim().replace(/[\\/:*?"<>|]/g, "_");
 
