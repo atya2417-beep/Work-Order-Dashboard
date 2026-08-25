@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+    <base target="_top">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Work Order Dashboard</title>
+
+
+    <link rel="stylesheet" href="css/index.css">
+
+</head>
+
+
+<body>
+
+    <div class="container">
+
+
+        <div class="header">
+
+            <div class="title">
+                📊 Work Order Dashboard
+            </div>
+
+
+            <div class="searchBox">
+
+                <input id="workOrder" type="text" placeholder="Enter Work Order..." onkeydown="handleEnter(event)">
+
+
+                <button id="searchBtn" class="searchButton" onclick="searchWO()">
+                    🔍 Search
+                </button>
+
+
+                <button id="exportBtn" class="exportButton" onclick="exportExcel()" disabled>
+                    📥 Export Excel
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <div id="errorBox" class="error">
+        </div>
+
+
+        <div id="loading" class="loading">
+            ⏳ Searching...
+        </div>
+
+
+        <div id="resultInfo" class="resultInfo">
+        </div>
+
+
+        <div id="summary" class="summary" style="display:none;">
+
+            <div class="card">
+                <div class="cardTitle">
+                    FINISH
+                </div>
+
+                <div id="finishCount" class="cardNumber">
+                    0
+                </div>
+            </div>
+
+
+            <div class="card">
+                <div class="cardTitle">
+                    HOLD
+                </div>
+
+                <div id="holdCount" class="cardNumber">
+                    0
+                </div>
+            </div>
+
+
+            <div class="card">
+                <div class="cardTitle">
+                    REWIND
+                </div>
+
+                <div id="rewindCount" class="cardNumber">
+                    0
+                </div>
+            </div>
+
+
+            <div class="card">
+                <div class="cardTitle">
+                    TOTAL ROWS
+                </div>
+
+                <div id="totalCount" class="cardNumber">
+                    0
+                </div>
+            </div>
+
+        </div>
+
+
+        <!-- FINISH -->
+
+        <div class="section">
+
+            <div class="sectionHeader finishHeader">
+                🟢 FINISH
+            </div>
+
+            <div id="finishTable" class="tableContainer">
+                <div class="empty">
+                    Search for a Work Order
+                </div>
+            </div>
+
+        </div>
+
+
+        <!-- HOLD -->
+
+        <div class="section">
+
+            <div class="sectionHeader holdHeader">
+                🔴 HOLD
+            </div>
+
+            <div id="holdTable" class="tableContainer">
+                <div class="empty">
+                    Search for a Work Order
+                </div>
+            </div>
+
+        </div>
+
+
+        <!-- REWIND -->
+
+        <div class="section">
+
+            <div class="sectionHeader rewindHeader">
+                🔵 REWIND
+            </div>
+
+            <div id="rewindTable" class="tableContainer">
+                <div class="empty">
+                    Search for a Work Order
+                </div>
+            </div>
+
+        </div>
+
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="js/index.js"></script>
+
+</body>
+
+</html>
