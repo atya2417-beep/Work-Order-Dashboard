@@ -48,6 +48,12 @@ const SHEETS = {
     sheetName: "Assembly",
     workOrderColumn: "C",
   },
+
+  INSPECTION: {
+    spreadsheetId: "159YezUKfLUK6lepupNBN7yXPnCxUGO99693wFNDVy28",
+    sheetName: "Inspection",
+    workOrderColumn: "B",
+  },
 };
 
 // =====================================================
@@ -84,6 +90,8 @@ const tappingSummaryCard = document.getElementById("tappingSummaryCard");
 
 const assemblySummaryCard = document.getElementById("assemblySummaryCard");
 
+const inspectionSummaryCard = document.getElementById("inspectionSummaryCard");
+
 const armouringCount = document.getElementById("armouringCount");
 
 const screeningCount = document.getElementById("screeningCount");
@@ -92,6 +100,8 @@ const tappingCount = document.getElementById("tappingCount");
 
 const assemblyCount = document.getElementById("assemblyCount");
 
+const inspectionCount = document.getElementById("inspectionCount");
+
 const totalCount = document.getElementById("totalCount");
 
 const finishTable = document.getElementById("finishTable");
@@ -99,6 +109,7 @@ const finishTable = document.getElementById("finishTable");
 const holdTable = document.getElementById("holdTable");
 
 const rewindTable = document.getElementById("rewindTable");
+
 
 // =====================================================
 // In Process Elements
@@ -114,6 +125,8 @@ const tappingTable = document.getElementById("tappingTable");
 
 const assemblyTable = document.getElementById("assemblyTable");
 
+const inspectionTable = document.getElementById("inspectionTable")
+
 // =====================================================
 // Search Results
 // =====================================================
@@ -127,6 +140,7 @@ let searchResults = {
   SCREENING: [],
   TAPPING: [],
   ASSEMBLY: [],
+  INSPECTION: [],
 };
 
 // =====================================================
@@ -183,6 +197,8 @@ async function searchWO() {
       requests.push(searchSheet(SHEETS.TAPPING, workOrder));
 
       requests.push(searchSheet(SHEETS.ASSEMBLY, workOrder));
+
+      requests.push(searchSheet(SHEETS.INSPECTION, workOrder));
     }
 
     // =================================================
@@ -213,6 +229,8 @@ async function searchWO() {
       searchResults.TAPPING = results[5];
 
       searchResults.ASSEMBLY = results[6];
+
+      searchResults.INSPECTION = results[7];
     } else {
       searchResults.ARMOURING = [];
       searchResults.SCREENING = [];
@@ -244,6 +262,8 @@ async function searchWO() {
       renderTable(searchResults.TAPPING, tappingTable, "TAPPING");
 
       renderTable(searchResults.ASSEMBLY, assemblyTable, "ASSEMBLY");
+
+      renderTable(searchResults.INSPECTION, inspectionTable, "INSPECTION");
     } else {
       inProcessSections.style.display = "none";
     }
@@ -270,7 +290,8 @@ async function searchWO() {
         searchResults.ARMOURING.length +
         searchResults.SCREENING.length +
         searchResults.TAPPING.length +
-        searchResults.ASSEMBLY.length;
+        searchResults.ASSEMBLY.length +
+        searchResults.INSPECTION.length;
     }
 
     const totalRows = mainTotal + inProcessTotal;
@@ -476,6 +497,8 @@ function updateSummary() {
 
   assemblySummaryCard.style.display = "none";
 
+  inspectionSummaryCard.style.display = "none";
+
   // =================================================
   // Total
   // =================================================
@@ -495,6 +518,9 @@ function updateSummary() {
 
     const assemblyTotal = searchResults.ASSEMBLY.length;
 
+    const inspectionTotal = searchResults.INSPECTION.length;
+
+
     // ---------------------------------------------
     // Update Counts
     // ---------------------------------------------
@@ -507,6 +533,8 @@ function updateSummary() {
 
     assemblyCount.textContent = assemblyTotal;
 
+    inspectionCount.textContent = inspectionTotal;
+
     // ---------------------------------------------
     // Show Cards
     // ---------------------------------------------
@@ -518,6 +546,8 @@ function updateSummary() {
     tappingSummaryCard.style.display = "block";
 
     assemblySummaryCard.style.display = "block";
+
+    inspectionSummaryCard.style.display = "block";
 
     // ---------------------------------------------
     // Add To Total
@@ -591,6 +621,11 @@ function exportExcel() {
       {
         name: "ASSEMBLY",
         data: searchResults.ASSEMBLY,
+      },
+
+      {
+        name: "INSPECTION",
+        data: searchResults.INSPECTION,
       },
     );
   }
